@@ -25,7 +25,7 @@ def get_file_content(file_path):
     """
     """
 
-    with open(file_path, "r", encoding=FILE_ENCODING) as f:
+    with open(file_path, "r", encoding="ISO-8859-1") as f:
         return f.read()
 
 
