@@ -16,14 +16,14 @@ class InfoCommand(BaseCommand):
         "Project": "Anti-Spam Filter",
         "StudentName": "Daniel Țoncu",
         "Alias": "Heisenberg",
-        "Version": "0.9"
+        "Version": "0.9r"
     }
 
-    def __init__(self, output_file=None):
+    def __init__(self, output_file=None, debug=False):
         """
         """
 
-        super(InfoCommand, self).__init__()
+        super(InfoCommand, self).__init__(debug)
 
         self._output_file = output_file
 

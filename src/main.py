@@ -13,6 +13,8 @@ if __name__ == "__main__":
     """
     """
 
+    print()
+
     argument_parser = argparse.ArgumentParser(
         prog="antispam-filter",
         description="Anti-Spam Filter detects Spam Emails in a provided set of emails."
@@ -23,7 +25,7 @@ if __name__ == "__main__":
         required=False,
         metavar="output_file",
         dest="info_output_file",
-        help="writes information about the application in provided output_file"
+        help="write information about the application in provided output_file"
     )
 
     argument_parser.add_argument(
@@ -32,7 +34,7 @@ if __name__ == "__main__":
         nargs=2,
         metavar=("directory", "output_file"),
         dest="scan_args",
-        help="scans all emails (files) in provided directory and writes the analysis status in provided output_file"
+        help="scan all emails (files) from provided directory and write the analysis status in provided output file"
     )
 
     argument_parser.add_argument(
@@ -41,20 +43,30 @@ if __name__ == "__main__":
         version="%(prog)s " + InfoCommand.DATA["Version"]
     )
 
+    argument_parser.add_argument(
+        "-d", "--debug",
+        required=False,
+        action="store_true",
+        help="show debug information while executing the command"
+    )
+
     args = argument_parser.parse_args()
 
     if args.info_output_file is not None:
 
-        info_command = InfoCommand(args.info_output_file)
+        info_command = InfoCommand(args.info_output_file, args.debug)
         info_command.execute()
 
         sys.exit()
 
     if args.scan_args is not None:
 
-        scan_command = ScanCommand(args.scan_args[0], args.scan_args[1])
+        scan_command = ScanCommand(
+            args.scan_args[0], args.scan_args[1], args.debug)
         scan_command.execute(ScanCommand.RANDOM_ANALYSIS)
 
         sys.exit()
 
     argument_parser.print_help()
+
+    print()
