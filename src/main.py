@@ -9,6 +9,23 @@ from commands.info import InfoCommand
 from commands.scan import ScanCommand
 
 
+ANALYSIS_ALGORITHMS = {
+    "random": ScanCommand.RANDOM_ANALYSIS
+}
+
+DEFAULT_ANALYSIS_ALGORITHM = ScanCommand.RANDOM_ANALYSIS
+
+
+def get_analysis_algorithm_by_name(algorithm_name):
+    """
+    """
+
+    if algorithm_name not in ANALYSIS_ALGORITHMS:
+        return DEFAULT_ANALYSIS_ALGORITHM
+
+    return ANALYSIS_ALGORITHMS[algorithm_name]
+
+
 if __name__ == "__main__":
     """
     """
@@ -38,6 +55,15 @@ if __name__ == "__main__":
     )
 
     argument_parser.add_argument(
+        "-a", "--algorithm",
+        required=False,
+        default="random",
+        metavar="algorithm",
+        dest="algorithm",
+        help="the analysis algorithm to use when performing the scan"
+    )
+
+    argument_parser.add_argument(
         "-v", "--version",
         action="version",
         version="%(prog)s " + InfoCommand.DATA["Version"]
@@ -63,7 +89,7 @@ if __name__ == "__main__":
 
         scan_command = ScanCommand(
             args.scan_args[0], args.scan_args[1], args.debug)
-        scan_command.execute(ScanCommand.RANDOM_ANALYSIS)
+        scan_command.execute(get_analysis_algorithm_by_name(args.algorithm))
 
         sys.exit()
 

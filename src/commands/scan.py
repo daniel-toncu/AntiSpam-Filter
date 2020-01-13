@@ -18,20 +18,8 @@ class ScanCommand(BaseCommand):
     CLEAN_KEYWORD = "cln"
     INFECTED_KEYWORD = "inf"
 
-    RANDOM_ANALYSIS = None
-
-    def __init__(self, folder, output_file, debug=False):
-        """
-        """
-
-        super(ScanCommand, self).__init__(debug)
-
-        ScanCommand.RANDOM_ANALYSIS = self._analyze_email_random
-
-        self._folder = folder
-        self._output_file = output_file
-
-    def _analyze_email_random(self, email):
+    @staticmethod
+    def _analyze_email_random(email):
         """
         """
 
@@ -40,11 +28,16 @@ class ScanCommand(BaseCommand):
 
         return ScanCommand.INFECTED_KEYWORD
 
-    def _analyze_email(self, email):
+    RANDOM_ANALYSIS = _analyze_email_random
+
+    def __init__(self, folder, output_file, debug=False):
         """
         """
 
-        pass
+        super(ScanCommand, self).__init__(debug)
+
+        self._folder = folder
+        self._output_file = output_file
 
     def execute(self, analysis_algorithm):
         """
