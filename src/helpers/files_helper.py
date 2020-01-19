@@ -1,6 +1,8 @@
 """
 """
 
+import csv
+from io import StringIO
 from os import listdir
 from os.path import isfile, isdir, join
 
@@ -37,3 +39,18 @@ def set_file_content(file_path, content, append=False):
 
     with open(file_path, mode, encoding=FILE_ENCODING) as f:
         f.write(content)
+
+
+def export_to_csv(content):
+    """
+    """
+
+    text_stream = StringIO()
+
+    csv_writer = csv.writer(text_stream)
+
+    csv_writer.writerows(content)
+
+    text_stream.seek(0)
+
+    return text_stream
