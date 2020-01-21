@@ -10,7 +10,9 @@ Original file is located at
 import csv
 import nltk
 import numpy as np
+import os
 import pandas as pd
+import pickle
 import random as rnd
 import string
 import zipfile
@@ -41,6 +43,17 @@ def get_file_content(file_path):
     with open(file_path, "r", encoding="ISO-8859-1") as f:
         return f.read()
 
+FILE_ENCODING = "utf-8"
+
+def set_file_content(file_path, content, append=False):
+    """
+    """
+
+    mode = "a" if append else "w"
+
+    with open(file_path, mode, encoding=FILE_ENCODING) as f:
+        f.write(content)
+
 def export_to_csv(content):
     """
     """
@@ -54,6 +67,19 @@ def export_to_csv(content):
     text_stream.seek(0)
 
     return text_stream
+
+def clean_text(content):
+  """
+  """
+
+  if "<html>" in content.lower():
+    content = BeautifulSoup(content).text
+
+  content = "".join([character if character not in string.punctuation else " " for character in content])
+
+  content = [word for word in content.split() if word.lower() not in stopwords.words("english")]
+
+  return content
 
 uploaded_files = files.upload()
 
@@ -87,32 +113,26 @@ data_frame.shape
 
 data_frame.isnull().sum()
 
-nltk.download("stopwords")
+RESOURCES_DIRECTORY_PATH = ".resources"
 
-def clean_text(content):
-  """
-  """
+if not os.path.exists(RESOURCES_DIRECTORY_PATH):
+  os.mkdir(RESOURCES_DIRECTORY_PATH)
 
-  if "<html>" in content.lower():
-    content = BeautifulSoup(content).text
-
-  content = "".join([character if character not in string.punctuation else " " for character in content])
-
-  content = [word for word in content.split() if word.lower() not in stopwords.words("english")]
-
-  return content
+nltk.download("stopwords", download_dir=RESOURCES_DIRECTORY_PATH)
+nltk.data.path.append(RESOURCES_DIRECTORY_PATH)
 
 data_frame["content"].head().apply(clean_text)
 
 from sklearn.feature_extraction.text import CountVectorizer
 
-vectorizer = CountVectorizer(analyzer=clean_text).fit_transform(data_frame["content"])
+vectorizer = CountVectorizer(analyzer=clean_text)
+bag_of_words = vectorizer.fit_transform(data_frame["content"])
 
 from sklearn.model_selection import train_test_split
 
-x_train, x_test, y_train, y_test = train_test_split(vectorizer, data_frame["spam"], test_size=0.20, random_state=0)
+x_train, x_test, y_train, y_test = train_test_split(bag_of_words, data_frame["spam"], test_size=0.0001, random_state=0)
 
-vectorizer.shape
+bag_of_words.shape
 
 from sklearn.naive_bayes import MultinomialNB
 
@@ -157,3 +177,72 @@ print()
 print("Accuracy Score\n")
 print(accuracy_score(y_test, prediction))
 print()
+
+KNOWLEDGE_DIRECTORY_PATH = ".knowledge"
+
+if not os.path.exists(KNOWLEDGE_DIRECTORY_PATH):
+  os.mkdir(KNOWLEDGE_DIRECTORY_PATH)
+
+with open(os.path.join(KNOWLEDGE_DIRECTORY_PATH, "classifier_naive_bayes_v01"), "wb") as f:
+  pickle.dump(classifier, f)
+
+with open(os.path.join(KNOWLEDGE_DIRECTORY_PATH, "count_vectorizer_v01"), "wb") as f:
+  pickle.dump(vectorizer, f)
+
+print("===")
+
+uploaded_files = files.upload()
+
+zf = zipfile.ZipFile("Lot-02.zip")
+zf.extractall()
+
+test_emails_file_paths = get_file_paths("Lot-02/Test")
+
+emails = []
+
+emails += [[get_file_content(file_path)] for file_path in test_emails_file_paths]
+
+emails.insert(0, ["content"])
+
+emails_csv = export_to_csv(emails)
+
+data_frame = pd.read_csv(emails_csv)
+
+RESOURCES_DIRECTORY_PATH = ".resources"
+
+if not os.path.exists(RESOURCES_DIRECTORY_PATH):
+  os.mkdir(RESOURCES_DIRECTORY_PATH)
+
+nltk.download("stopwords", download_dir=RESOURCES_DIRECTORY_PATH)
+nltk.data.path.append(RESOURCES_DIRECTORY_PATH)
+
+from sklearn.naive_bayes import MultinomialNB
+
+with open(os.path.join(KNOWLEDGE_DIRECTORY_PATH, "classifier_naive_bayes_v01"), "rb") as f:
+  classifier = pickle.load(f)
+
+with open(os.path.join(KNOWLEDGE_DIRECTORY_PATH, "count_vectorizer_v01"), "rb") as f:
+  vectorizer = pickle.load(f)
+
+from sklearn.feature_extraction.text import CountVectorizer
+
+bag_of_words = vectorizer.transform(data_frame["content"])
+
+prediction = classifier.predict(bag_of_words)
+
+CLEAN_KEYWORD = "cln"
+INFECTED_KEYWORD = "inf"
+
+LABEL_TRANSLATOR = {
+    0: CLEAN_KEYWORD,
+    1: INFECTED_KEYWORD
+}
+
+for i in range(len(test_emails_file_paths)):
+
+  status = LABEL_TRANSLATOR[prediction[i]]
+  file_name = os.path.basename(test_emails_file_paths[i])
+
+  status_line = "%s|%s\n" % (file_name, status)
+
+  set_file_content("output_file", status_line, append=True)
