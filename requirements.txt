@@ -1,1 +1,6 @@
 argparse
+bs4
+nltk
+numpy
+pandas
+sklearn
