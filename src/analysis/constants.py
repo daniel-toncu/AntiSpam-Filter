@@ -1,0 +1,16 @@
+"""
+"""
+
+RESOURCES_DIRECTORY_NAME = ".resources"
+KNOWLEDGE_DIRECTORY_NAME = ".knowledge"
+
+CLASSIFIER_FILE_NAME = "classifier_naive_bayes"
+VECTORIZER_FILE_NAME = "count_vectorizer"
+
+CLEAN_KEYWORD = "cln"
+INFECTED_KEYWORD = "inf"
+
+LABEL_TRANSLATOR = {
+    0: CLEAN_KEYWORD,
+    1: INFECTED_KEYWORD
+}
